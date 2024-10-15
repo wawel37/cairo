@@ -8,16 +8,16 @@ use cairo_lang_syntax::node::ast::*;
 use cairo_lang_syntax::node::db::SyntaxGroup;
 use cairo_lang_syntax::node::kind::SyntaxKind;
 use cairo_lang_syntax::node::{SyntaxNode, Token, TypedSyntaxNode};
-use cairo_lang_utils::{LookupIntern, extract_matches, require};
+use cairo_lang_utils::{extract_matches, require, LookupIntern};
 use syntax::node::green::{GreenNode, GreenNodeDetails};
 use syntax::node::ids::GreenId;
 
-use crate::ParserDiagnostic;
 use crate::diagnostic::ParserDiagnosticKind;
 use crate::lexer::{Lexer, LexerTerminal};
 use crate::operators::{get_post_operator_precedence, get_unary_operator_precedence};
 use crate::recovery::is_of_kind;
 use crate::validation::{validate_literal_number, validate_short_string, validate_string};
+use crate::ParserDiagnostic;
 
 #[cfg(test)]
 #[path = "parser_test.rs"]
@@ -1577,7 +1577,7 @@ impl<'a> Parser<'a> {
     /// Expected pattern: `\.\.<Expr>`
     fn expect_struct_argument_tail(&mut self) -> StructArgTailGreen {
         let dotdot = self.take::<TerminalDotDot>(); // ..
-        // TODO(yuval): consider changing this to SimpleExpr once it exists.
+                                                    // TODO(yuval): consider changing this to SimpleExpr once it exists.
         let expr = self.parse_expr();
         StructArgTail::new_green(self.db, dotdot, expr)
     }
@@ -2914,10 +2914,10 @@ impl<'a> Parser<'a> {
         let mut split_index = 0;
         for trivium in self.next_terminal.leading_trivia.iter() {
             match trivium.0.lookup_intern(self.db).kind {
-                SyntaxKind::TokenSingleLineComment | SyntaxKind::TokenSingleLineInnerComment => {
+                SyntaxKind::TokenSingleLineComment | SyntaxKind::SingleLineInnerComment => {
                     has_header_doc = true;
                 }
-                SyntaxKind::TokenSingleLineDocComment => {
+                SyntaxKind::SingleLineDocComment => {
                     break;
                 }
                 _ => {}

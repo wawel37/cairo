@@ -3,6 +3,8 @@ use core::fmt;
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum SyntaxKind {
     Trivia,
+    SingleLineInnerComment,
+    SingleLineDocComment,
     ExprList,
     Arg,
     ArgClauseNamed,
@@ -143,6 +145,8 @@ pub enum SyntaxKind {
     GenericParamImplNamed,
     GenericParamImplAnonymous,
     GenericParamNegativeImpl,
+    DocInlineReferenceLink,
+    DocImpliedReferenceLink,
     TriviumSkippedNode,
     TokenIdentifier,
     TerminalIdentifier,
@@ -302,8 +306,7 @@ pub enum SyntaxKind {
     TokenEmpty,
     TerminalEmpty,
     TokenSingleLineComment,
-    TokenSingleLineInnerComment,
-    TokenSingleLineDocComment,
+    TokenCommentTrivia,
     TokenWhitespace,
     TokenNewline,
     TokenMissing,
@@ -392,8 +395,7 @@ impl SyntaxKind {
                 | SyntaxKind::TokenXor
                 | SyntaxKind::TokenEmpty
                 | SyntaxKind::TokenSingleLineComment
-                | SyntaxKind::TokenSingleLineInnerComment
-                | SyntaxKind::TokenSingleLineDocComment
+                | SyntaxKind::TokenCommentTrivia
                 | SyntaxKind::TokenWhitespace
                 | SyntaxKind::TokenNewline
                 | SyntaxKind::TokenMissing

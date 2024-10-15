@@ -8,6 +8,8 @@ use super::kind::SyntaxKind;
 pub fn get_key_fields(kind: SyntaxKind, children: &[GreenId]) -> Vec<GreenId> {
     match kind {
         SyntaxKind::Trivia => vec![],
+        SyntaxKind::SingleLineInnerComment => vec![],
+        SyntaxKind::SingleLineDocComment => vec![],
         SyntaxKind::ExprList => vec![],
         SyntaxKind::Arg => {
             vec![]
@@ -386,6 +388,12 @@ pub fn get_key_fields(kind: SyntaxKind, children: &[GreenId]) -> Vec<GreenId> {
         SyntaxKind::GenericParamNegativeImpl => {
             vec![]
         }
+        SyntaxKind::DocInlineReferenceLink => {
+            vec![]
+        }
+        SyntaxKind::DocImpliedReferenceLink => {
+            vec![]
+        }
         SyntaxKind::TriviumSkippedNode => {
             vec![]
         }
@@ -705,8 +713,7 @@ pub fn get_key_fields(kind: SyntaxKind, children: &[GreenId]) -> Vec<GreenId> {
             vec![]
         }
         SyntaxKind::TokenSingleLineComment => vec![],
-        SyntaxKind::TokenSingleLineInnerComment => vec![],
-        SyntaxKind::TokenSingleLineDocComment => vec![],
+        SyntaxKind::TokenCommentTrivia => vec![],
         SyntaxKind::TokenWhitespace => vec![],
         SyntaxKind::TokenNewline => vec![],
         SyntaxKind::TokenMissing => vec![],

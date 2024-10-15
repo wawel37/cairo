@@ -3,13 +3,12 @@
 mod test;
 
 use cairo_lang_filesystem::span::{TextOffset, TextSpan, TextWidth};
-use cairo_lang_syntax::node::Token;
 use cairo_lang_syntax::node::ast::{
-    TokenNewline, TokenSingleLineComment, TokenSingleLineDocComment, TokenSingleLineInnerComment,
-    TokenWhitespace, TriviumGreen,
+    Comment, CommentGreen, SingleLineDocComment, SingleLineInnerComment, TokenCommentTrivia, TokenNewline, TokenSingleLineComment, TokenWhitespace, TriviumGreen
 };
 use cairo_lang_syntax::node::db::SyntaxGroup;
 use cairo_lang_syntax::node::kind::SyntaxKind;
+use cairo_lang_syntax::node::Token;
 use cairo_lang_utils::require;
 use smol_str::SmolStr;
 
@@ -108,12 +107,11 @@ impl<'a> Lexer<'a> {
         match self.peek_nth(2) {
             Some('/') => {
                 self.take_while(|c| c != '\n');
-                TokenSingleLineDocComment::new_green(self.db, SmolStr::from(self.consume_span()))
-                    .into()
+                SingleLineDocComment::new_green(self.db, SmolStr::from(self.consume_span())).into()
             }
             Some('!') => {
                 self.take_while(|c| c != '\n');
-                TokenSingleLineInnerComment::new_green(self.db, SmolStr::from(self.consume_span()))
+                SingleLineInnerComment::new_green(self.db, SmolStr::from(self.consume_span()))
                     .into()
             }
             _ => {
@@ -123,6 +121,28 @@ impl<'a> Lexer<'a> {
             }
         }
     }
+    
+    fn match_comment_link(&mut self) -> CommentGreen -> {
+
+    }
+
+    /// Assumes next 3 characters are either "///" or "//!"
+    fn match_trivium_comment(&mut self) -> Vec<CommentGreen> {
+        let mut result: Vec<CommentGreen> = Vec::new();
+        result.push(§)
+        while let Some(current) = self.peek() {
+          match current {
+            '[' => result.push(self.match_comment_link()),
+            '\n' => return result,
+            _ => {
+              self.take_while(|c| c != '\n' && c != '[');
+              result.push(TokenCommentTrivia::new_green(self.db, SmolStr::from(self.consume_span())).into());
+            }
+          }
+        }
+        result
+    }
+
 
     // Token matchers.
     // =================================================================================
