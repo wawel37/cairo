@@ -16,7 +16,7 @@ use cairo_lang_diagnostics::{Diagnostics, DiagnosticsBuilder, Maybe};
 use cairo_lang_filesystem::ids::{CrateId, FileId, FileLongId};
 use cairo_lang_parser::db::ParserGroup;
 use cairo_lang_syntax::attribute::structured::Attribute;
-use cairo_lang_syntax::node::{TypedStablePtr, ast};
+use cairo_lang_syntax::node::{SyntaxNode, TypedStablePtr, ast};
 use cairo_lang_utils::ordered_hash_map::OrderedHashMap;
 use cairo_lang_utils::ordered_hash_set::OrderedHashSet;
 use cairo_lang_utils::{LookupIntern, Upcast, require};
@@ -1687,6 +1687,9 @@ pub trait SemanticGroup:
         &self,
         module_id: ModuleFileId,
     ) -> Option<Arc<OrderedHashMap<TraitId, String>>>;
+
+    #[salsa::invoke(lsp_helpers::node_resultants)]
+    fn node_resultants(&self, node: SyntaxNode) -> Option<Vec<SyntaxNode>>;
 }
 
 /// Initializes the [`SemanticGroup`] database to a proper state.
