@@ -392,17 +392,18 @@ pub fn visible_traits_from_module(
 pub fn node_resultants(db: &dyn SemanticGroup, node: SyntaxNode) -> Option<Vec<SyntaxNode>> {
     let main_file = node.stable_ptr(db).file_id(db);
 
-    let (mut files, _) = file_and_subfiles_with_corresponding_modules(db, main_file)?;
+    let (mut files, _) = db.file_and_subfiles_with_corresponding_modules(main_file)?;
 
     files.remove(&main_file);
 
     let files: Vec<_> = files.into_iter().collect();
-    let resultants = find_generated_nodes(db, &files, node);
+    let resultants = db.find_generated_nodes(files, node);
 
     Some(resultants.into_iter().collect())
 }
 
-fn file_and_subfiles_with_corresponding_modules(
+#[tracing::instrument(level = "trace", skip(db))]
+pub fn file_and_subfiles_with_corresponding_modules(
     db: &dyn SemanticGroup,
     file: FileId,
 ) -> Option<(HashSet<FileId>, HashSet<ModuleId>)> {
@@ -438,9 +439,10 @@ fn file_and_subfiles_with_corresponding_modules(
     Some((files, modules))
 }
 
-fn find_generated_nodes(
+#[tracing::instrument(level = "trace", skip(db))]
+pub fn find_generated_nodes(
     db: &dyn SemanticGroup,
-    node_descendant_files: &[FileId],
+    node_descendant_files: Vec<FileId>,
     node: SyntaxNode,
 ) -> OrderedHashSet<SyntaxNode> {
     let start_file = node.stable_ptr(db).file_id(db);
@@ -449,7 +451,7 @@ fn find_generated_nodes(
 
     let mut is_replaced = false;
 
-    for &file in node_descendant_files {
+    for file in node_descendant_files.iter().copied() {
         let Some((parent, mappings)) = get_parent_and_mapping(db, file) else {
             continue;
         };
@@ -505,7 +507,7 @@ fn find_generated_nodes(
         }
 
         for new_node in new_nodes {
-            result.extend(find_generated_nodes(db, node_descendant_files, new_node));
+            result.extend(find_generated_nodes(db, node_descendant_files.clone(), new_node));
         }
     }
 

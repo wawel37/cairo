@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::sync::Arc;
 
 use cairo_lang_defs::db::{DefsGroup, DefsGroupEx};
@@ -1691,6 +1691,19 @@ pub trait SemanticGroup:
     // #[tracing::instrument(level = "trace", skip_all)]
     #[salsa::invoke(lsp_helpers::node_resultants)]
     fn node_resultants(&self, node: SyntaxNode) -> Option<Vec<SyntaxNode>>;
+
+    #[salsa::invoke(lsp_helpers::file_and_subfiles_with_corresponding_modules)]
+    fn file_and_subfiles_with_corresponding_modules(
+        &self,
+        file: FileId,
+    ) -> Option<(HashSet<FileId>, HashSet<ModuleId>)>;
+
+    #[salsa::invoke(lsp_helpers::find_generated_nodes)]
+    fn find_generated_nodes(
+        &self,
+        node_descendant_files: Vec<FileId>,
+        node: SyntaxNode,
+    ) -> OrderedHashSet<SyntaxNode>;
 }
 
 /// Initializes the [`SemanticGroup`] database to a proper state.
