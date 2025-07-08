@@ -840,6 +840,7 @@ dependencies = [
  "smol_str",
  "test-log",
  "toml",
+ "tracing",
 ]
 
 [[package]]

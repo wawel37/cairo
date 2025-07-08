@@ -388,6 +388,7 @@ pub fn visible_traits_from_module(
 }
 
 /// Query implemenetaion of [crate::db::SemanticGroup::node_resultants]
+#[tracing::instrument(level = "trace", skip(db))]
 pub fn node_resultants(db: &dyn SemanticGroup, node: SyntaxNode) -> Option<Vec<SyntaxNode>> {
     let main_file = node.stable_ptr(db).file_id(db);
 

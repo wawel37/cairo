@@ -1688,6 +1688,7 @@ pub trait SemanticGroup:
         module_id: ModuleFileId,
     ) -> Option<Arc<OrderedHashMap<TraitId, String>>>;
 
+    // #[tracing::instrument(level = "trace", skip_all)]
     #[salsa::invoke(lsp_helpers::node_resultants)]
     fn node_resultants(&self, node: SyntaxNode) -> Option<Vec<SyntaxNode>>;
 }
