@@ -13,7 +13,7 @@ use cairo_lang_defs::ids::{
     VariantId,
 };
 use cairo_lang_diagnostics::{Diagnostics, DiagnosticsBuilder, Maybe};
-use cairo_lang_filesystem::ids::{CrateId, FileId, FileLongId};
+use cairo_lang_filesystem::ids::{CodeMapping, CrateId, FileId, FileLongId};
 use cairo_lang_parser::db::ParserGroup;
 use cairo_lang_syntax::attribute::structured::Attribute;
 use cairo_lang_syntax::node::{SyntaxNode, TypedStablePtr, ast};
@@ -1704,6 +1704,23 @@ pub trait SemanticGroup:
         node_descendant_files: Vec<FileId>,
         node: SyntaxNode,
     ) -> OrderedHashSet<SyntaxNode>;
+
+    #[salsa::invoke(lsp_helpers::process_token)]
+    fn process_token(
+        &self,
+        mappings: Arc<[CodeMapping]>,
+        node: SyntaxNode,
+        token: SyntaxNode,
+    ) -> Option<SyntaxNode>;
+
+    #[salsa::invoke(lsp_helpers::process_file)]
+    fn process_file(
+        &self,
+        node_descendant_files: Vec<FileId>,
+        start_file: FileId,
+        node: SyntaxNode,
+        file: FileId,
+    ) -> (bool, Option<OrderedHashSet<SyntaxNode>>);
 }
 
 /// Initializes the [`SemanticGroup`] database to a proper state.
