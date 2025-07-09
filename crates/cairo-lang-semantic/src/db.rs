@@ -1705,13 +1705,13 @@ pub trait SemanticGroup:
         node: SyntaxNode,
     ) -> OrderedHashSet<SyntaxNode>;
 
-    #[salsa::invoke(lsp_helpers::process_token)]
-    fn process_token(
-        &self,
-        mappings: Arc<[CodeMapping]>,
-        node: SyntaxNode,
-        token: SyntaxNode,
-    ) -> Option<SyntaxNode>;
+    // #[salsa::invoke(lsp_helpers::process_token)]
+    // fn process_token(
+    //     &self,
+    //     mappings: Arc<[CodeMapping]>,
+    //     node: SyntaxNode,
+    //     token: SyntaxNode,
+    // ) -> Option<SyntaxNode>;
 
     #[salsa::invoke(lsp_helpers::process_file)]
     fn process_file(

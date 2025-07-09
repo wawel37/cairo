@@ -498,7 +498,7 @@ pub fn process_file(
     let mut new_nodes: OrderedHashSet<_> = Default::default();
 
     for token in file_syntax.tokens(db) {
-        db.process_token(mappings.clone(), node, token).map(|new_node| new_nodes.insert(new_node));
+        process_token(db, mappings.clone(), node, token).map(|new_node| new_nodes.insert(new_node));
     }
 
     // If there is no node found, don't mark it as potentially replaced.
@@ -514,7 +514,7 @@ pub fn process_file(
 }
 
 #[tracing::instrument(level = "trace", skip(db))]
-pub fn process_token(
+fn process_token(
     db: &dyn SemanticGroup,
     mappings: Arc<[CodeMapping]>,
     node: SyntaxNode,
