@@ -507,7 +507,7 @@ pub fn find_generated_nodes(
         }
 
         for new_node in new_nodes {
-            result.extend(find_generated_nodes(db, node_descendant_files.clone(), new_node));
+            result.extend(db.find_generated_nodes(node_descendant_files.clone(), new_node));
         }
     }
 
