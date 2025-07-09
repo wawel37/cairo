@@ -452,63 +452,66 @@ pub fn find_generated_nodes(
     let mut is_replaced = false;
 
     for file in node_descendant_files.iter().copied() {
-        let Some((parent, mappings)) = get_parent_and_mapping(db, file) else {
-            continue;
-        };
+        // let Some((parent, mappings)) = get_parent_and_mapping(db, file) else {
+        //     continue;
+        // };
 
-        if parent != start_file {
-            continue;
-        }
+        // if parent != start_file {
+        //     continue;
+        // }
 
-        let Ok(file_syntax) = db.file_syntax(file) else {
-            continue;
-        };
+        // let Ok(file_syntax) = db.file_syntax(file) else {
+        //     continue;
+        // };
 
-        let is_replacing_og_item = match file.lookup_intern(db) {
-            FileLongId::Virtual(vfs) => vfs.original_item_removed,
-            FileLongId::External(id) => db.ext_as_virtual(id).original_item_removed,
-            _ => unreachable!(),
-        };
+        // let is_replacing_og_item = match file.lookup_intern(db) {
+        //     FileLongId::Virtual(vfs) => vfs.original_item_removed,
+        //     FileLongId::External(id) => db.ext_as_virtual(id).original_item_removed,
+        //     _ => unreachable!(),
+        // };
 
-        let mut new_nodes: OrderedHashSet<_> = Default::default();
+        // let mut new_nodes: OrderedHashSet<_> = Default::default();
 
-        for token in file_syntax.tokens(db) {
-            // Skip end of the file terminal, which is also a syntax tree leaf.
-            // As `ModuleItemList` and `TerminalEndOfFile` have the same parent,
-            // which is the `SyntaxFile`, so we don't want to take the `SyntaxFile`
-            // as an additional resultant.
-            if token.kind(db) == SyntaxKind::TerminalEndOfFile {
-                continue;
-            }
-            let nodes: Vec<_> = token
-                .ancestors_with_self(db)
-                .map_while(|new_node| {
-                    translate_location(&mappings, new_node.span(db))
-                        .map(|span_in_parent| (new_node, span_in_parent))
-                })
-                .take_while(|(_, span_in_parent)| node.span(db).contains(*span_in_parent))
-                .collect();
+        // for token in file_syntax.tokens(db) {
+        //     // Skip end of the file terminal, which is also a syntax tree leaf.
+        //     // As `ModuleItemList` and `TerminalEndOfFile` have the same parent,
+        //     // which is the `SyntaxFile`, so we don't want to take the `SyntaxFile`
+        //     // as an additional resultant.
+        //     if token.kind(db) == SyntaxKind::TerminalEndOfFile {
+        //         continue;
+        //     }
+        //     let nodes: Vec<_> = token
+        //         .ancestors_with_self(db)
+        //         .map_while(|new_node| {
+        //             translate_location(&mappings, new_node.span(db))
+        //                 .map(|span_in_parent| (new_node, span_in_parent))
+        //         })
+        //         .take_while(|(_, span_in_parent)| node.span(db).contains(*span_in_parent))
+        //         .collect();
 
-            if let Some((last_node, _)) = nodes.last().cloned() {
-                let (new_node, _) = nodes
-                    .into_iter()
-                    .rev()
-                    .take_while(|(node, _)| node.span(db) == last_node.span(db))
-                    .last()
-                    .unwrap();
+        //     if let Some((last_node, _)) = nodes.last().cloned() {
+        //         let (new_node, _) = nodes
+        //             .into_iter()
+        //             .rev()
+        //             .take_while(|(node, _)| node.span(db) == last_node.span(db))
+        //             .last()
+        //             .unwrap();
 
-                new_nodes.insert(new_node);
-            }
-        }
+        //         new_nodes.insert(new_node);
+        //     }
+        // }
 
-        // If there is no node found, don't mark it as potentially replaced.
-        if !new_nodes.is_empty() {
-            is_replaced = is_replaced || is_replacing_og_item;
-        }
+        // // If there is no node found, don't mark it as potentially replaced.
+        // if !new_nodes.is_empty() {
+        //     is_replaced = is_replaced || is_replacing_og_item;
+        // }
 
-        for new_node in new_nodes {
-            result.extend(db.find_generated_nodes(node_descendant_files.clone(), new_node));
-        }
+        let (was_replaced, new_nodes) =
+            db.process_file(node, node_descendant_files.clone(), start_file, file);
+        is_replaced = is_replaced || was_replaced;
+        // for new_node in new_nodes {
+        result.extend(new_nodes);
+        // }
     }
 
     if !is_replaced {
@@ -516,4 +519,74 @@ pub fn find_generated_nodes(
     }
 
     result
+}
+
+#[tracing::instrument(level = "trace", skip(db))]
+pub fn process_file(
+    db: &dyn SemanticGroup,
+    node: SyntaxNode,
+    node_descendant_files: Vec<FileId>,
+    start_file: FileId,
+    file: FileId,
+) -> (bool, OrderedHashSet<SyntaxNode>) {
+    let mut is_replaced = false;
+    let mut result = OrderedHashSet::default();
+    let Some((parent, mappings)) = get_parent_and_mapping(db, file) else {
+        return (is_replaced, result);
+    };
+
+    if parent != start_file {
+        return (is_replaced, result);
+    }
+
+    let Ok(file_syntax) = db.file_syntax(file) else {
+        return (is_replaced, result);
+    };
+
+    let is_replacing_og_item = match file.lookup_intern(db) {
+        FileLongId::Virtual(vfs) => vfs.original_item_removed,
+        FileLongId::External(id) => db.ext_as_virtual(id).original_item_removed,
+        _ => unreachable!(),
+    };
+
+    let mut new_nodes: OrderedHashSet<_> = Default::default();
+
+    for token in file_syntax.tokens(db) {
+        // Skip end of the file terminal, which is also a syntax tree leaf.
+        // As `ModuleItemList` and `TerminalEndOfFile` have the same parent,
+        // which is the `SyntaxFile`, so we don't want to take the `SyntaxFile`
+        // as an additional resultant.
+        if token.kind(db) == SyntaxKind::TerminalEndOfFile {
+            continue;
+        }
+        let nodes: Vec<_> = token
+            .ancestors_with_self(db)
+            .map_while(|new_node| {
+                translate_location(&mappings, new_node.span(db))
+                    .map(|span_in_parent| (new_node, span_in_parent))
+            })
+            .take_while(|(_, span_in_parent)| node.span(db).contains(*span_in_parent))
+            .collect();
+
+        if let Some((last_node, _)) = nodes.last().cloned() {
+            let (new_node, _) = nodes
+                .into_iter()
+                .rev()
+                .take_while(|(node, _)| node.span(db) == last_node.span(db))
+                .last()
+                .unwrap();
+
+            new_nodes.insert(new_node);
+        }
+    }
+
+    // If there is no node found, don't mark it as potentially replaced.
+    if !new_nodes.is_empty() {
+        is_replaced = is_replaced || is_replacing_og_item;
+    }
+
+    for new_node in new_nodes {
+        result.extend(db.find_generated_nodes(node_descendant_files.clone(), new_node));
+    }
+    (is_replaced, result)
 }

@@ -1704,6 +1704,15 @@ pub trait SemanticGroup:
         node_descendant_files: Vec<FileId>,
         node: SyntaxNode,
     ) -> OrderedHashSet<SyntaxNode>;
+
+    #[salsa::invoke(lsp_helpers::process_file)]
+    fn process_file(
+        &self,
+        node: SyntaxNode,
+        node_descendant_files: Vec<FileId>,
+        start_file: FileId,
+        file: FileId,
+    ) -> (bool, OrderedHashSet<SyntaxNode>);
 }
 
 /// Initializes the [`SemanticGroup`] database to a proper state.
