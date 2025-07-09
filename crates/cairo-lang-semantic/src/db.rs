@@ -1713,14 +1713,14 @@ pub trait SemanticGroup:
     //     token: SyntaxNode,
     // ) -> Option<SyntaxNode>;
 
-    #[salsa::invoke(lsp_helpers::process_file)]
-    fn process_file(
-        &self,
-        node_descendant_files: Vec<FileId>,
-        start_file: FileId,
-        node: SyntaxNode,
-        file: FileId,
-    ) -> (bool, Option<OrderedHashSet<SyntaxNode>>);
+    // #[salsa::invoke(lsp_helpers::process_file)]
+    // fn process_file(
+    //     &self,
+    //     node_descendant_files: Vec<FileId>,
+    //     start_file: FileId,
+    //     node: SyntaxNode,
+    //     file: FileId,
+    // ) -> (bool, Option<OrderedHashSet<SyntaxNode>>);
 }
 
 /// Initializes the [`SemanticGroup`] database to a proper state.

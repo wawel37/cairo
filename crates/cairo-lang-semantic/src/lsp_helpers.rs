@@ -453,7 +453,7 @@ pub fn find_generated_nodes(
 
     for file in node_descendant_files.iter().copied() {
         let (was_replaced, new_nodes) =
-            db.process_file(node_descendant_files.clone(), start_file, node, file);
+            process_file(db, node_descendant_files.clone(), start_file, node, file);
         is_replaced = is_replaced || was_replaced;
         if let Some(new_nodes) = new_nodes {
             result.extend(new_nodes);
@@ -468,7 +468,7 @@ pub fn find_generated_nodes(
 }
 
 #[tracing::instrument(level = "trace", skip(db))]
-pub fn process_file(
+fn process_file(
     db: &dyn SemanticGroup,
     node_descendant_files: Vec<FileId>,
     start_file: FileId,
@@ -507,7 +507,7 @@ pub fn process_file(
     }
 
     for new_node in new_nodes {
-        result.extend(db.find_generated_nodes(node_descendant_files.clone(), new_node));
+        result.extend(find_generated_nodes(db, node_descendant_files.clone(), new_node));
     }
 
     (is_replaced, if result.is_empty() { None } else { Some(result) })
